@@ -1,7 +1,7 @@
 {
   "name": "dsh-ui-todo-fix",
-  "version": "0.1.0",
-  "description": "DSH Web GUI 外观定制：把 todo 面板固定到界面右上角（纯 CSS 注入，可热调，不碰组件逻辑）",
+  "version": "0.2.0",
+  "description": "DSH Web GUI 外观定制：把 todo 面板固定到右上角并跨轮常驻（CSS 注入 + 机制级常驻，可热调）",
   "author": "lsxblh",
   "license": "MIT",
   "repository": {

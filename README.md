@@ -6,11 +6,22 @@ DeepSeek Harness Web GUI 外观定制插件：把 todo 面板从聊天输入框�
 
 ## 特性
 
-- 零依赖、纯 Host 插件，~30 行核心代码
+- 零依赖、纯 Host 插件，核心代码 ~50 行
 - 走官方注入钩子 `webServer.tapIndex`（与内置主题插件同构）
 - CSS 内容由 `config.css` 驱动：**热调样式无需重启**（改 profile 的 `cordis.patch.yml` → HMR 生效 → 刷新页面）
+- **跨轮常驻**：todo 列表在发消息（新 turn）后不消失——机制级实现，不依赖任何 agent 行为习惯（v0.2 新增）
 - 内置默认样式，装完即有默认效果
 - 标准 `dsh.bundle` 形态：`dsh plugin add` 自动登记进 profile bundles
+
+## 跨轮常驻（v0.2）
+
+dsh 原生机制：`turn/start`（用户发消息开启新一轮）会把 todos 投影清空，todo 面板随之整体消失，直到 agent 本轮重新调用 `todo_write`。
+
+本插件在 host 侧监听 `session/event`：按会话记录最近一次 `todo/write` 的列表，`turn/start` 后立即重放一条 `todo/write`——任务列表跨轮保持可见，任何 agent 都无需额外动作。
+
+- 默认开启；`config.keepAcrossTurns: false` 可关闭（恢复原生行为）
+- agent 主动清空（写入空列表）后不会复活
+- 每次 turn 会在会话事件流多追加一条 `todo/write`（合法事件，仅用于恢复）
 
 ## 机制
 
@@ -24,7 +35,7 @@ todo 面板（`section[data-testid="todo-panel"]`）由内置组件挂载在 `co
 
 ```bash
 # 方式一：GitHub 发布包（推荐，与 dsh-at-file 同模式）
-dsh plugin --profile web add https://github.com/lsxblh/dsh-ui-todo-fix/archive/refs/tags/v0.1.0.tar.gz
+dsh plugin --profile web add https://github.com/lsxblh/dsh-ui-todo-fix/archive/refs/tags/v0.2.0.tar.gz
 
 # 方式二：本地源码目录
 dsh plugin --profile web add file:/path/to/dsh-ui-todo-fix
