@@ -1,0 +1,22 @@
+{
+  "name": "dsh-ui-todo-fix",
+  "version": "0.1.0",
+  "description": "DSH Web GUI 外观定制：把 todo 面板固定到界面右上角（纯 CSS 注入，可热调，不碰组件逻辑）",
+  "author": "lsxblh",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lsxblh/dsh-ui-todo-fix.git"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "todo",
+    "css",
+    "ui"
+  ],
+  "type": "module",
+  "main": "lib/index.js",
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } }
+}
