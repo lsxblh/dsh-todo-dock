@@ -8,7 +8,7 @@ DeepSeek Harness Web GUI 插件：把 todo 面板从聊天输入框上方**停�
 
 > **改名说明**：v0.3.0 起由 `dsh-ui-todo-fix` 更名为 `dsh-todo-dock`（v0.2.x 及更早均为原名）。
 
-![效果：todo 面板固定右上角，默认折叠为一条摘要条](https://github.com/lsxblh/dsh-todo-dock/raw/main/assets/screenshot.png)
+![效果：todo 面板停靠右上角](https://github.com/lsxblh/dsh-todo-dock/raw/main/assets/screenshot.png)
 
 ## 特性
 
