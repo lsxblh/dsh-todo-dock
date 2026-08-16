@@ -1,8 +1,14 @@
-# dsh-ui-todo-fix
+# dsh-todo-dock
 
-DeepSeek Harness Web GUI 外观定制插件：把 todo 面板从聊天输入框上方移到**界面右上角**（`position: fixed`），不占文档流、不挡输入。纯 CSS 注入，不碰任何组件逻辑。
+![DeepSeek Harness](https://img.shields.io/badge/Built%20with-DeepSeek%20Harness-4D6BFE?logo=deepseek&logoColor=white)
+![License](https://img.shields.io/github/license/lsxblh/dsh-todo-dock?logo=github)
+![Version](https://img.shields.io/github/v/tag/lsxblh/dsh-todo-dock?label=version)
 
-![效果：todo 面板固定右上角，默认折叠为一条摘要条](https://github.com/lsxblh/dsh-ui-todo-fix/raw/main/assets/screenshot.png)
+DeepSeek Harness Web GUI 插件：把 todo 面板从聊天输入框上方**停靠到界面右上角**（`position: fixed`），不占文档流、不挡输入，并让任务列表**跨轮常驻**不消失。纯 CSS 注入 + host 侧机制级重放，不碰任何组件逻辑。
+
+> **改名说明**：v0.3.0 起由 `dsh-ui-todo-fix` 更名为 `dsh-todo-dock`（v0.2.x 及更早均为原名）。
+
+![效果：todo 面板固定右上角，默认折叠为一条摘要条](https://github.com/lsxblh/dsh-todo-dock/raw/main/assets/screenshot.png)
 
 ## 特性
 
@@ -10,10 +16,11 @@ DeepSeek Harness Web GUI 外观定制插件：把 todo 面板从聊天输入框�
 - 走官方注入钩子 `webServer.tapIndex`（与内置主题插件同构）
 - CSS 内容由 `config.css` 驱动：**热调样式无需重启**（改 profile 的 `cordis.patch.yml` → HMR 生效 → 刷新页面）
 - **跨轮常驻**：todo 列表在发消息（新 turn）后不消失——机制级实现，不依赖任何 agent 行为习惯（v0.2 新增）
+- **健壮性加固**（v0.2.1）：非数组 junk 不重放 / Map 随会话销毁清理 / 重放错误隔离，附 8 用例回归测试
 - 内置默认样式，装完即有默认效果
 - 标准 `dsh.bundle` 形态：`dsh plugin add` 自动登记进 profile bundles
 
-## 跨轮常驻（v0.2）
+## 跨轮常驻
 
 dsh 原生机制：`turn/start`（用户发消息开启新一轮）会把 todos 投影清空，todo 面板随之整体消失，直到 agent 本轮重新调用 `todo_write`。
 
@@ -34,11 +41,11 @@ todo 面板（`section[data-testid="todo-panel"]`）由内置组件挂载在 `co
 依赖 DSH Web profile（`dsh plugin` 基于 pnpm，需本机有 pnpm）：
 
 ```bash
-# 方式一：GitHub 发布包（推荐，与 dsh-at-file 同模式）
-dsh plugin --profile web add https://github.com/lsxblh/dsh-ui-todo-fix/archive/refs/tags/v0.2.0.tar.gz
+# 方式一：GitHub 发布包（推荐）
+dsh plugin --profile web add https://github.com/lsxblh/dsh-todo-dock/archive/refs/tags/v0.3.0.tar.gz
 
 # 方式二：本地源码目录
-dsh plugin --profile web add file:/path/to/dsh-ui-todo-fix
+dsh plugin --profile web add file:/path/to/dsh-todo-dock
 ```
 
 安装后**重启一次 dsh web 服务**（bundle 层在启动时组合）。装完面板即出现在右上角。
@@ -48,8 +55,8 @@ dsh plugin --profile web add file:/path/to/dsh-ui-todo-fix
 注入的 CSS 默认取包内 `DEFAULT_CSS`；想覆盖/调整，在 `~/.dsh/profiles/web/cordis.patch.yml` 追加：
 
 ```yaml
-- id: dsh-ui-todo-fix
-  name: dsh-ui-todo-fix
+- id: dsh-todo-dock
+  name: dsh-todo-dock
   config:
     css: |
       body section[data-testid="todo-panel"]{
@@ -77,7 +84,7 @@ body section[data-testid="todo-panel"]{
 ## 卸载 / 回滚
 
 ```bash
-dsh plugin --profile web remove dsh-ui-todo-fix
+dsh plugin --profile web remove dsh-todo-dock
 ```
 
 并删除 `cordis.patch.yml` 中相关 override 行（如有）。
@@ -85,10 +92,11 @@ dsh plugin --profile web remove dsh-ui-todo-fix
 ## 开发
 
 ```text
-dsh-ui-todo-fix/
+dsh-todo-dock/
 ├── package.json        # dsh.bundle.patch 声明（官方 bundle 形态）
 ├── cordis.patch.yml    # 向 profile 注入一行插件条目
-└── lib/index.js        # 插件本体：inject webServer → tapIndex 注入 config.css
+├── lib/index.js        # 插件本体：inject webServer → tapIndex 注入 config.css + 跨轮重放
+└── tests/              # 8 用例回归测试：node tests/keep-across-turns.test.mjs
 ```
 
 修改后本地验证：`dsh plugin --profile web add file:<本目录>` → 重启 dsh web → 刷新页面。

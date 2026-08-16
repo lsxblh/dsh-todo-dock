@@ -2,7 +2,7 @@
 
 ### Issue tracker
 
-Issues live in GitHub Issues（lsxblh/dsh-ui-todo-fix，用 gh CLI 读写）。See `docs/agents/issue-tracker.md`.
+Issues live in GitHub Issues（lsxblh/dsh-todo-dock，用 gh CLI 读写）。See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
