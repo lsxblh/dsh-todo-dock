@@ -18,7 +18,7 @@ Single-context —— 根目录一个 `CONTEXT.md` + `docs/adr/`。See `docs/age
 
 **① OCR delegate —— 双轴的前置输入（管"范围"）**
 
-双轴审查开始前，若目标是 git 仓库且有可审改动（未提交或历史 commit），先跑 `ocr delegate preview`（workspace / `--from --to` / `-c <commit>` 模式，无需 `git add`/`commit`）+ `ocr delegate rule <files>`（每类文件的审查规则）。ocr 不在系统 PATH，pwsh 用全路径：`node C:\npm-global\node_modules\@alibaba-group\open-code-review\bin\ocr.js delegate preview`。用其"可审文件清单"核对双轴 sub-agent 的文件覆盖，规则组当通用缺陷清单喂给双轴。
+双轴审查开始前，若目标是 git 仓库且有可审改动（未提交或历史 commit），先跑 `ocr delegate preview`（workspace / `--from --to` / `-c <commit>` 模式，无需 `git add`/`commit`）+ `ocr delegate rule <files>`（每类文件的审查规则）。ocr（open-code-review）不在系统 PATH 时，用 `node <npm 全局目录>/node_modules/@alibaba-group/open-code-review/bin/ocr.js delegate preview` 全路径调用，或临时把 npm 全局 bin 加入 PATH。用其"可审文件清单"核对双轴 sub-agent 的文件覆盖，规则组当通用缺陷清单喂给双轴。
 
 **② 对抗性 subagent —— 双轴之后的复核（管"置信"）**
 
