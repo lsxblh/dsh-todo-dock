@@ -42,7 +42,7 @@ todo 面板（`section[data-testid="todo-panel"]`）由内置组件挂载在 `co
 
 ```bash
 # 方式一：GitHub 发布包（推荐）
-dsh plugin --profile web add https://github.com/lsxblh/dsh-todo-dock/archive/refs/tags/v0.3.1.tar.gz
+dsh plugin --profile web add https://github.com/lsxblh/dsh-todo-dock/archive/refs/tags/v0.3.2.tar.gz
 
 # 方式二：本地源码目录
 dsh plugin --profile web add file:/path/to/dsh-todo-dock
