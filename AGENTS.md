@@ -1,3 +1,12 @@
+# 项目（dsh-todo-dock）
+
+DSH Web GUI 插件：todo 面板停靠右上角（CSS 注入）+ 跨轮常驻（机制级重放）。注意**工作区目录名 `dsh-ui-todo-fix` 是旧名**——v0.3.0 起包名 / 仓库名 / 插件 id 均为 `dsh-todo-dock`。
+
+- 无 npm scripts；测试单进程直跑：`node tests/keep-across-turns.test.mjs`
+- 开发验证：`dsh plugin --profile web add file:<本目录>` → 重启 dsh web → 刷新页面
+- CSS 热调：改 `~/.dsh/profiles/web/cordis.patch.yml` 的 `config.css` → HMR 生效，无需重启
+- 发版：同步 package.json `version` 与 git tag（v0.3.2 出现过 tag/version 不同步）
+
 # Agent skills
 
 ### Issue tracker
@@ -10,7 +19,7 @@ Issues live in GitHub Issues（lsxblh/dsh-todo-dock，用 gh CLI 读写）。See
 
 ### Domain docs
 
-Single-context —— 根目录一个 `CONTEXT.md` + `docs/adr/`。See `docs/agents/domain.md`.
+领域文档约定（`CONTEXT.md` / `docs/adr/` 惰性创建，不存在时静默继续、别主动建）见 `docs/agents/domain.md`。
 
 # 代码审查增强层（可选 · 自主判断 · 不强制）
 
