@@ -1,5 +1,5 @@
-// v0.2.1 修复的反馈环：mock Cordis ctx，验证跨轮常驻的 3 个修复点 + 原有行为不回归。
-// 单进程直跑（不走 node --test runner 的子进程）：node tests/keep-across-turns.test.mjs
+// v0.3.2 修复的反馈环：mock Cordis ctx，验证跨轮常驻的 4 个修复点（含 FIX-4 跨重启恢复）
+// + 原有行为不回归。单进程直跑（不走 node --test runner 的子进程）：node tests/keep-across-turns.test.mjs
 import assert from 'node:assert/strict'
 import { apply } from '../lib/index.js'
 
@@ -38,6 +38,8 @@ function makeHarness() {
       const appends = []
       const session = {
         id,
+        // 会话事件日志（真实 DSH 重启后从持久化恢复，events 含完整历史）
+        events: opts.events ?? [],
         append(type, data) {
           if (opts.appendThrows) throw new Error('boom')
           appends.push({ type, data })
@@ -153,6 +155,83 @@ const suite = async () => {
     })
     ctx.emit('session/event', session, { type: 'turn/start' })
     await assert.doesNotReject(flushMicrotasks())
+  })
+
+  console.log('── 修复点 4：跨重启恢复（从会话日志懒扫描） ──')
+  await run('FIX-4: 重启后 turn/start 从日志恢复最后一条 todo/write', async () => {
+    const { ctx, makeSession } = makeHarness()
+    apply(ctx, {})
+    // 模拟重启后的新插件实例 + 从持久化恢复的会话（events 含历史 todo/write）
+    const { session, appends } = makeSession('s1', {
+      events: [
+        { type: 'todo/write', data: { todos: [{ content: 'old', status: 'in_progress' }] } },
+        { type: 'turn/end' }
+      ]
+    })
+    ctx.emit('session/event', session, { type: 'turn/start' })
+    await flushMicrotasks()
+    assert.equal(appends.length, 1)
+    assert.equal(appends[0].type, 'todo/write')
+    assert.deepEqual(appends[0].data.todos, [{ content: 'old', status: 'in_progress' }])
+  })
+  await run('FIX-4: 日志末尾是 turn/start（原生投影已清空）也能恢复', async () => {
+    const { ctx, makeSession } = makeHarness()
+    apply(ctx, {})
+    // 用户 bug 场景：最后一条相关事件是 turn/start，DSH 原生折叠为 null
+    const { session, appends } = makeSession('s1', {
+      events: [
+        { type: 'todo/write', data: { todos: [{ content: 'survive', status: 'completed' }] } },
+        { type: 'turn/start' }
+      ]
+    })
+    ctx.emit('session/event', session, { type: 'turn/start' })
+    await flushMicrotasks()
+    assert.equal(appends.length, 1)
+    assert.deepEqual(appends[0].data.todos, [{ content: 'survive', status: 'completed' }])
+  })
+  await run('FIX-4: 日志里没有 todo/write（新会话）不重放', async () => {
+    const { ctx, makeSession } = makeHarness()
+    apply(ctx, {})
+    const { session, appends } = makeSession('s1', {
+      events: [{ type: 'user/message' }, { type: 'assistant/message' }]
+    })
+    ctx.emit('session/event', session, { type: 'turn/start' })
+    await flushMicrotasks()
+    assert.equal(appends.length, 0)
+  })
+  await run('FIX-4: 日志里 junk todo/write 被跳过，扫到更早的合法列表', async () => {
+    const { ctx, makeSession } = makeHarness()
+    apply(ctx, {})
+    const { session, appends } = makeSession('s1', {
+      events: [
+        { type: 'todo/write', data: { todos: [{ content: 'good', status: 'pending' }] } },
+        { type: 'todo/write', data: { todos: { not: 'array' } } }
+      ]
+    })
+    ctx.emit('session/event', session, { type: 'turn/start' })
+    await flushMicrotasks()
+    assert.equal(appends.length, 1)
+    assert.deepEqual(appends[0].data.todos, [{ content: 'good', status: 'pending' }])
+  })
+  await run('FIX-4: 恢复后进程内增量更新仍生效（重放的是最新列表）', async () => {
+    const { ctx, makeSession } = makeHarness()
+    apply(ctx, {})
+    const { session, appends } = makeSession('s1', {
+      events: [
+        { type: 'todo/write', data: { todos: [{ content: 'from-log', status: 'pending' }] } }
+      ]
+    })
+    // 先恢复（turn/start 触发懒扫描），随后 agent 写新列表覆盖游标
+    ctx.emit('session/event', session, { type: 'turn/start' })
+    await flushMicrotasks()
+    ctx.emit('session/event', session, {
+      type: 'todo/write',
+      data: { todos: [{ content: 'fresh', status: 'in_progress' }] }
+    })
+    ctx.emit('session/event', session, { type: 'turn/start' })
+    await flushMicrotasks()
+    assert.equal(appends.length, 2)
+    assert.deepEqual(appends[1].data.todos, [{ content: 'fresh', status: 'in_progress' }])
   })
 
   console.log('── keepAcrossTurns 开关 ──')

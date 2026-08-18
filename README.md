@@ -16,7 +16,8 @@ DeepSeek Harness Web GUI 插件：把 todo 面板从聊天输入框上方**停�
 - 走官方注入钩子 `webServer.tapIndex`（与内置主题插件同构）
 - CSS 内容由 `config.css` 驱动：**热调样式无需重启**（改 profile 的 `cordis.patch.yml` → HMR 生效 → 刷新页面）
 - **跨轮常驻**：todo 列表在发消息（新 turn）后不消失——机制级实现，不依赖任何 agent 行为习惯（v0.2 新增）
-- **健壮性加固**（v0.2.1）：非数组 junk 不重放 / Map 随会话销毁清理 / 重放错误隔离，附 8 用例回归测试
+- **跨重启恢复**：关闭重开 dsh 后，重开同一会话时从 DSH 已持久化的会话日志恢复最后一条 todo 列表（v0.3.2 新增；零新增存储，懒扫描 + 增量游标）
+- **健壮性加固**（v0.2.1 / v0.3.2）：非数组 junk 不重放 / Map 随会话销毁清理 / 重放错误隔离 / 日志无 todo 时安全回退，附 13 用例回归测试
 - 内置默认样式，装完即有默认效果
 - 标准 `dsh.bundle` 形态：`dsh plugin add` 自动登记进 profile bundles
 
@@ -29,6 +30,7 @@ dsh 原生机制：`turn/start`（用户发消息开启新一轮）会把 todos 
 - 默认开启；`config.keepAcrossTurns: false` 可关闭（恢复原生行为）
 - agent 主动清空（写入空列表）后不会复活
 - 每次 turn 会在会话事件流多追加一条 `todo/write`（合法事件，仅用于恢复）
+- **重启恢复**：进程重启后游标为空，首个 `turn/start` 会从该会话的持久化事件日志倒序懒扫描最后一条 `todo/write`（仅此一次，之后增量 O(1)）；日志里没有 todo（新会话 / 已被 compaction 剪掉）则安全回退为不重放
 
 ## 机制
 
